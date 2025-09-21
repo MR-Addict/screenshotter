@@ -1,0 +1,24 @@
+{
+  "name": "screenshotter",
+  "description": "A browser extension to take screenshots of web pages' DOM elements.",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "format": "prettier -c --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "@types/webextension-polyfill": "^0.12.3",
+    "prettier": "^3.6.2",
+    "tsup": "^8.5.0",
+    "typescript": "~5.6.3",
+    "webextension-polyfill": "^0.10.0"
+  },
+  "prettier": {
+    "useTabs": false,
+    "singleQuote": false,
+    "trailingComma": "none",
+    "printWidth": 120
+  }
+}
