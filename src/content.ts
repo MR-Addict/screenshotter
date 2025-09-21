@@ -11,7 +11,7 @@ async function handleTakeScreenshot() {
 
 function handleMessage(message: any) {
   const { action } = message as Message;
-  if (action === "toggle") screenshotTool.active = !screenshotTool.active;
+  if (action === "toggle") screenshotTool.toggle();
 }
 
 const screenshotTool = new ScreenshotTool({ screenshotHandler: handleTakeScreenshot });
