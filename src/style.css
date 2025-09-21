@@ -1,0 +1,21 @@
+.screenshot-tool-hover-overlay {
+  z-index: 9999;
+  display: none;
+  position: absolute;
+  transition: all 100ms ease;
+
+  pointer-events: none;
+  border: 2px solid #007bff;
+  background-color: rgba(0, 123, 255, 0.2);
+
+  &.active {
+    display: block;
+
+    &.ready {
+      cursor: pointer;
+      pointer-events: auto;
+      border-color: #28a745;
+      background-color: rgba(40, 167, 69, 0.2);
+    }
+  }
+}

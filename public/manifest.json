@@ -10,11 +10,18 @@
     "96": "icon/96.png",
     "128": "icon/128.png"
   },
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_title": "Screenshotter"
   },
   "background": {
     "service_worker": "background.global.js"
   },
-  "host_permissions": ["<all_urls>"]
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.global.js"],
+      "css": ["style.css"]
+    }
+  ]
 }

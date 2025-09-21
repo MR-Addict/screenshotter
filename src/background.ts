@@ -1,14 +1,28 @@
 import browser from "webextension-polyfill";
 
-let isActive = false;
+import { Message } from "./type";
 
-function updateIcon() {
-  browser.action.setBadgeText({ text: isActive ? "●" : "" });
-  browser.action.setBadgeBackgroundColor({ color: isActive ? "#06f" : "#666" });
-  browser.action.setTitle({ title: `Screenshotter(${isActive ? "Active" : "Inactive"})` });
+async function notifyContentScript() {
+  try {
+    // Get all active tabs
+    const activeTabs = await browser.tabs.query({ active: true, currentWindow: true });
+
+    // Send message to each active tab
+    for (const tab of activeTabs) {
+      if (tab.id) browser.tabs.sendMessage<Message>(tab.id, { action: "toggle" });
+    }
+  } catch {}
 }
 
-browser.action.onClicked.addListener(async () => {
-  isActive = !isActive;
-  updateIcon();
-});
+async function handleMessage(message: any): Promise<Message<string> | void> {
+  const { action } = message as Message;
+  if (action === "screenshot") {
+    const data = await browser.tabs.captureVisibleTab();
+    return { action: "screenshot", data };
+  }
+  return Promise.resolve();
+}
+
+// Use Promise-based onMessage handler so content can await result
+browser.runtime.onMessage.addListener(handleMessage);
+browser.action.onClicked.addListener(notifyContentScript);

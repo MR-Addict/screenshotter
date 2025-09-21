@@ -2,8 +2,7 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   clean: true,
-  minify: true,
   format: "iife",
   publicDir: "public",
-  entry: ["src/background.ts"]
+  entry: ["src/background.ts", "src/content.ts", "src/style.css"]
 });
