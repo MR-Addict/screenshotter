@@ -1,4 +1,6 @@
+import { uuid } from "./uuid";
 import { Overlay } from "./Overlay";
+import { ApiResultType } from "../type";
 
 type ScreenshotHandler = () => Promise<string | null> | (string | null);
 
@@ -36,40 +38,58 @@ export class ScreenshotTool {
     if (!this.active) this.targetNode = null;
   }
 
-  private async cropAndDownloadScreenshot(dataUrl: string) {
-    if (!this.targetNode) return;
+  private async cropAndDownloadScreenshot(dataUrl: string): Promise<ApiResultType<string>> {
+    if (!this.targetNode) return { success: false, message: "No target node selected" };
     const rect = this.targetNode.getBoundingClientRect();
+
+    // Check if element is within the visible viewport
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Calculate the intersection of the element with the viewport
+    const cropX = Math.max(0, rect.left);
+    const cropY = Math.max(0, rect.top);
+    const cropWidth = Math.min(rect.right, viewportWidth) - cropX;
+    const cropHeight = Math.min(rect.bottom, viewportHeight) - cropY;
+
+    // If element is completely outside viewport, don't proceed
+    if (cropWidth <= 0 || cropHeight <= 0) {
+      return { success: false, message: "Element is not visible in the current viewport" };
+    }
+
     const canvas = document.createElement("canvas");
     const img = new Image();
     img.src = dataUrl;
     await new Promise((resolve) => (img.onload = () => resolve(true)));
 
     const scale = window.devicePixelRatio;
-    canvas.width = rect.width * scale;
-    canvas.height = rect.height * scale;
+    canvas.width = cropWidth * scale;
+    canvas.height = cropHeight * scale;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) return { success: false, message: "Failed to get canvas context" };
 
+    // Crop from the screenshot using viewport-relative coordinates
     ctx.drawImage(
       img,
-      rect.left * scale,
-      rect.top * scale,
-      rect.width * scale,
-      rect.height * scale,
+      cropX * scale,
+      cropY * scale,
+      cropWidth * scale,
+      cropHeight * scale,
       0,
       0,
-      rect.width * scale,
-      rect.height * scale
+      cropWidth * scale,
+      cropHeight * scale
     );
 
     // Create a link to download the cropped image
     const croppedDataUrl = canvas.toDataURL("image/png");
     const link = document.createElement("a");
+    link.target = "_blank";
     link.href = croppedDataUrl;
-    link.download = "screenshot.png";
-    document.body.appendChild(link);
+    link.download = `screenshot-${uuid(5)}.png`;
     link.click();
-    document.body.removeChild(link);
+
+    return { success: true, message: "Screenshot downloaded", data: croppedDataUrl };
   }
 
   private updateOverlay() {
@@ -86,8 +106,11 @@ export class ScreenshotTool {
     if (this.active && event.metaKey && this.screenshotHandler && this.targetNode) {
       this.overlay.status = "hide";
       const dataUrl = await this.screenshotHandler();
-      if (dataUrl) await this.cropAndDownloadScreenshot(dataUrl);
-      this.toggle(false);
+      if (dataUrl) {
+        const res = await this.cropAndDownloadScreenshot(dataUrl);
+        if (!res.success) alert(res.message);
+        else this.toggle(false);
+      }
     }
   }
 
