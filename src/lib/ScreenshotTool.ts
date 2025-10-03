@@ -62,27 +62,41 @@ export class ScreenshotTool {
     img.src = dataUrl;
     await new Promise((resolve) => (img.onload = () => resolve(true)));
 
-    const scale = window.devicePixelRatio;
-    canvas.width = cropWidth * scale;
-    canvas.height = cropHeight * scale;
-    const ctx = canvas.getContext("2d");
+    // Scale up for better quality
+    const upscaleFactor = 1;
+    const windowScale = window.devicePixelRatio;
+    const finalScale = windowScale * upscaleFactor;
+
+    canvas.width = cropWidth * finalScale;
+    canvas.height = cropHeight * finalScale;
+    const ctx = canvas.getContext("2d", {
+      alpha: false,
+      colorSpace: "srgb",
+      desynchronized: false,
+      willReadFrequently: false
+    });
     if (!ctx) return { success: false, message: "Failed to get canvas context" };
 
-    // Crop from the screenshot using viewport-relative coordinates
+    // Set high-quality rendering settings
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    // Crop and upscale from the screenshot using viewport-relative coordinates
     ctx.drawImage(
       img,
-      cropX * scale,
-      cropY * scale,
-      cropWidth * scale,
-      cropHeight * scale,
+      cropX * windowScale,
+      cropY * windowScale,
+      cropWidth * windowScale,
+      cropHeight * windowScale,
       0,
       0,
-      cropWidth * scale,
-      cropHeight * scale
+      cropWidth * finalScale,
+      cropHeight * finalScale
     );
 
-    // Create a link to download the cropped image
-    const croppedDataUrl = canvas.toDataURL("image/png");
+    // Create a link to download the cropped image with best quality PNG
+    const croppedDataUrl = canvas.toDataURL("image/png", 1.0);
+
     const link = document.createElement("a");
     link.target = "_blank";
     link.href = croppedDataUrl;
