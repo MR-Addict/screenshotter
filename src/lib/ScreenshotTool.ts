@@ -119,6 +119,7 @@ export class ScreenshotTool {
   private async handleClickTarget(event: PointerEvent) {
     if (this.active && event.metaKey && this.screenshotHandler && this.targetNode) {
       this.overlay.status = "hide";
+      await new Promise((resolve) => setTimeout(resolve, 10));
       const dataUrl = await this.screenshotHandler();
       if (dataUrl) {
         const res = await this.cropAndDownloadScreenshot(dataUrl);
